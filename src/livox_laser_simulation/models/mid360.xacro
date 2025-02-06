@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+	<!-- 雷达高度参数 -->
+	<xacro:property name="lidar_x" value="0.0"/>
+	<xacro:property name="lidar_y" value="0.0"/>
+	<xacro:property name="lidar_z" value="1.3"/>
+  
+  <xacro:macro name="null_inertial">
+    <inertial>
+      <mass value="0.1"/>
+    <inertia ixx="0.01" ixy="0" ixz="0"
+          iyy="0.01" iyz="0"
+          izz="0.01"/>
+    </inertial>
+  </xacro:macro>
+  <xacro:macro name="Livox_Mid_gazebo_sensor" params="visualize:=True update_rate:=10 resolution:=0.002 noise_mean:=0.0 noise_stddev:=0.01 name:=livox">
+    <gazebo reference="${name}">
+      <sensor type="ray" name="laser_${name}">
+        <pose>0 0 0 0 0 0</pose>
+        <visualize>${visualize}</visualize>
+        <update_rate>${update_rate}</update_rate>
+        <!-- This ray plgin is only for visualization. -->
+        <plugin name="gazebo_ros_laser_controller" filename="liblivox_laser_simulation.so">
+			<ray>
+			  <scan>
+				  <horizontal>
+				    <samples>100</samples>
+				    <resolution>1</resolution>
+				    <min_angle>-3.1415926535897931</min_angle>
+            <max_angle>3.1415926535897931</max_angle>
+				  </horizontal>
+				  <vertical>
+				    <samples>50</samples>
+				    <resolution>1</resolution>
+				    <min_angle>-3.1415926535897931</min_angle>
+            <max_angle>3.1415926535897931</max_angle>
+				  </vertical>
+			  </scan>
+			  <range>
+				  <min>0.1</min>
+				  <max>40</max>
+				  <resolution>1</resolution>
+			  </range>
+			  <noise>
+				  <type>gaussian</type>
+				  <mean>0.0</mean>
+				  <stddev>0.0</stddev>
+			  </noise>
+			  </ray>
+          <visualize>False</visualize>
+		      <samples>20000</samples>
+		      <downsample>1</downsample>
+		      <csv_file_name>mid360-real-centr.csv</csv_file_name>
+          <publish_pointcloud_type>4</publish_pointcloud_type>
+		      <ros_topic>/livox/lidar</ros_topic>
+          <frameName>base_link</frameName>
+        </plugin>
+      </sensor>
+    </gazebo>
+    <gazebo reference="${name}">
+        <gravity>true</gravity>
+        <sensor name="imu_sensor" type="imu">
+            <always_on>true</always_on>
+            <update_rate>200</update_rate>
+            <visualize>true</visualize>
+            <topic>__default_topic__</topic>
+            <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+                <topicName>/livox/imu</topicName>
+                <bodyName>imu</bodyName>
+                <updateRateHZ>100.0</updateRateHZ>
+                <gaussianNoise>0.0</gaussianNoise>
+                <xyzOffset>0 0 0</xyzOffset>
+                <rpyOffset>0 0 0</rpyOffset>
+                <frameName>imu</frameName>
+            </plugin>
+            <pose>0 0 0 0 0 0</pose>
+        </sensor>
+    </gazebo>
+    
+  </xacro:macro>
+
+
+  <xacro:macro name="Livox_Mid40" params="visualize:=True name:=livox">
+
+    <link name="${name}_base">
+        
+      <xacro:null_inertial/>
+      <collision name="${name}_base_collision">
+        <geometry>
+            <!-- <mesh filename="package://livox_laser_simulation/meshes/livox_mid-360-90x.dae" /> -->
+            <box size="0.05 0.05 0.05"/>
+
+        </geometry>
+      </collision>
+      <visual name="${name}_base_visual">
+        <geometry>
+            <!-- <mesh filename="package://livox_laser_simulation/meshes/livox_mid-360-90x.dae" /> -->
+            <box size="0.05 0.05 0.05"/>
+        </geometry>
+      </visual>
+    </link>
+
+    <link name="${name}">
+      <xacro:null_inertial/>
+    </link>
+
+    <joint name="${name}_to_${name}_base_joint" type="fixed">
+      <parent link="${name}"/>
+      <child link="${name}_base"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 -0.05"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="10" velocity="5.0" lower="-1.57" upper="1.57" />
+    </joint>
+
+    
+    <joint name="livox_to_${name}_base_foot" type="continuous">
+      <parent link="lidar"/>
+      <child link="${name}"/>
+      <origin rpy="0 0 0" xyz="${lidar_x} ${lidar_y} ${lidar_z}"/>
+       <axis xyz="0 1 0"/>
+      <limit effort="10" velocity="5.0" lower="-1.57" upper="1.57" />
+    </joint>
+    
+
+
+
+    <xacro:Livox_Mid_gazebo_sensor name="${name}" visualize="${visualize}"/>
+  </xacro:macro>
+  
+    <xacro:Livox_Mid40 name="livox"/>
+    
+
+</robot>

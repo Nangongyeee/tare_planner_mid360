@@ -1,0 +1,10 @@
+
+devel/
+
+build/
+
+.vscode/
+
+.catkin_workspace
+
+src/autonomous_exploration_development_environment/src/vehicle_simulator/log/

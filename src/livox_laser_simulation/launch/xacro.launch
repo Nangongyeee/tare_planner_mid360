@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<launch>
+    <arg name="livox_sensor" default="$(find livox_laser_simulation)/models/mid360.xacro" />
+	<!-- This is where we set the initial position of the UAV-->
+	<arg name="x" value="0" />
+  	<arg name="y" value="0" />
+  	<arg name="z" value="0" />
+
+	<!-- This is where we select the world file-->
+	<arg name="world" default="$(find livox_laser_simulation)/worlds/test_pattern.world" />
+
+	<include file="$(find gazebo_ros)/launch/empty_world.launch">
+		<arg name="world_name" value="$(arg world)"/>
+		<arg name="paused" value="false"/>
+		<arg name="use_sim_time" value="true"/>
+		<arg name="gui" value="true"/>
+		<arg name="headless" value="false"/>
+		<arg name="debug" value="false"/>
+		<arg name="verbose" value="true"/>
+	</include>
+
+	<!-- This node launches rviz -->
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find livox_laser_simulation)/rviz/test_pattern.rviz" />
+  <param name="sensor_description" command="$(find xacro)/xacro --inorder $(arg livox_sensor)" />
+
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model livox_lidar -param sensor_description" />
+
+</launch>

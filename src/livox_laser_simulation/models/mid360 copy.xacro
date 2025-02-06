@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+
+  
+  <xacro:macro name="null_inertial">
+    <inertial>
+      <mass value="0.1"/>
+    <inertia ixx="0.01" ixy="0" ixz="0"
+          iyy="0.01" iyz="0"
+          izz="0.01"/>
+    </inertial>
+  </xacro:macro>
+  <xacro:macro name="Livox_Mid_gazebo_sensor" params="visualize:=True update_rate:=10 resolution:=0.002 noise_mean:=0.0 noise_stddev:=0.01 name:=livox">
+    <gazebo reference="${name}">
+      <sensor type="ray" name="laser_${name}">
+        <pose>0 0 0 0 0 0</pose>
+        <visualize>${visualize}</visualize>
+        <update_rate>${update_rate}</update_rate>
+        <!-- This ray plgin is only for visualization. -->
+        <plugin name="gazebo_ros_laser_controller" filename="liblivox_laser_simulation.so">
+			<ray>
+			  <scan>
+				  <horizontal>
+				    <samples>100</samples>
+				    <resolution>1</resolution>
+				    <min_angle>-3.1415926535897931</min_angle>
+            <max_angle>3.1415926535897931</max_angle>
+				  </horizontal>
+				  <vertical>
+				    <samples>50</samples>
+				    <resolution>1</resolution>
+				    <min_angle>-3.1415926535897931</min_angle>
+            <max_angle>3.1415926535897931</max_angle>
+				  </vertical>
+			  </scan>
+			  <range>
+				  <min>0.1</min>
+				  <max>40</max>
+				  <resolution>1</resolution>
+			  </range>
+			  <noise>
+				  <type>gaussian</type>
+				  <mean>0.0</mean>
+				  <stddev>0.0</stddev>
+			  </noise>
+			  </ray>
+          <visualize>True</visualize>
+		      <samples>20000</samples>
+		      <downsample>1</downsample>
+		      <csv_file_name>mid360-real-centr.csv</csv_file_name>
+          <publish_pointcloud_type>2</publish_pointcloud_type>
+		      <ros_topic>/livox/lidar</ros_topic>
+          <frameName>base_link</frameName>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+
+  <xacro:macro name="Livox_Mid40" params="visualize:=True name:=livox">
+    <link name="${name}_base">
+        <visual> 
+        <origin xyz="0.00 0 0.0" rpy="0 0 0"/>
+        <geometry>
+                <cylinder radius="0.01" length="0.01"/>
+
+        </geometry>
+
+      </visual>
+
+      <collision>
+		  <origin xyz="0 0 0" rpy="0 0 0" /> 
+          <geometry>
+                <cylinder radius="0.01" length="0.01"/>
+
+        </geometry>
+
+      </collision>
+
+    </link>
+    <link name="${name}">
+      <xacro:null_inertial/>
+    </link>
+
+    <joint name="${name}_to_${name}_base_joint" type="fixed">
+      <parent link="${name}"/>
+      <child link="${name}_base"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.89"/>
+    </joint>
+    <joint name="livox_to_${name}_base_foot" type="fixed">
+      <parent link="base_footprint"/>
+      <child link="${name}"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.89"/>
+    </joint>
+    
+
+
+
+
+    <xacro:Livox_Mid_gazebo_sensor name="${name}" visualize="${visualize}"/>
+  </xacro:macro>
+  
+    <xacro:Livox_Mid40 name="livox"/>
+    
+
+</robot>
